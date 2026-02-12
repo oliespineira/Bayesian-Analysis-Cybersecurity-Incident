@@ -30,6 +30,8 @@ Before running the project, make sure to install the required dependencies:
 pip install -r requirements.txt
 
 
+These libraries are being used:
+
 ```python
 from pgmpy.models import DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
