@@ -18,8 +18,17 @@ This code implements a **Discrete Bayesian Network** for the Freelandia Case Stu
 - **Evidence observations**
 - **Attribution confidence**
 - **Policy consequences**
+- 
 
 ### Key Components
+
+## Installation
+
+Before running the project, make sure to install the required dependencies:
+
+```bash
+pip install -r requirements.txt
+
 
 ```python
 from pgmpy.models import DiscreteBayesianNetwork
@@ -31,14 +40,7 @@ from pgmpy.inference import VariableElimination
 - `TabularCPD`: Conditional Probability Distributions
 - `VariableElimination`: Exact inference algorithm
 
-- ## Installation
 
-Before running the project, make sure to install the required dependencies:
-
-```bash
-pip install -r requirements.txt
-
----
 
 ## Network Structure
 
