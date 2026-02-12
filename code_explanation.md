@@ -11,7 +11,7 @@
 
 ## Overview
 
-This code implements a **Discrete Bayesian Network** for cyber-kinetic attack attribution using the `pgmpy` library. The network models probabilistic relationships between:
+This code implements a **Discrete Bayesian Network** for the Freelandia Case Study from DIGITAL FOG: INTELLIGENCE, CYBERSECURITY AND THE NEW FRONTLINES OF GEOPOLITICS. It has been constructed given the evidence from the first common case study regarding the Island's situation and the first Russian Intelligence package. This network has been created using the `pgmpy` library. The network models probabilistic relationships between:
 
 - **Sponsor identity** (hypothesis)
 - **Operational capabilities and motives**
@@ -104,7 +104,7 @@ cpd_falseflag = TabularCPD(
 )
 ```
 
-- P(FalseFlag=True | US) = 0.45 (highest - US most likely to plant false flags)
+- P(FalseFlag=True | US) = 0.45 (highest: US most likely to plant false flags)
 - P(FalseFlag=True | Russia) = 0.30
 - P(FalseFlag=True | Other) = 0.15 (least sophisticated)
 
@@ -184,9 +184,9 @@ cpd_m_punish = cpd_binary(m_punish, [0.35, 0.75, 0.30, 0.10, 0.20])
 
 **Probabilities by sponsor:**
 - Russia: 35% (moderate)
-- **NewRepublic: 75%** (very high - they want to punish Western influence)
+- **NewRepublic: 75%** (very high: they want to punish Western influence)
 - FPD: 30%
-- US: 10% (low - US wouldn't attack itself to punish West)
+- US: 10% (low: US wouldn't attack itself to punish West plus the US wouldn't lead to hospitals suffering consequences)
 - Other: 20%
 
 #### Undermine West Motive
@@ -195,7 +195,7 @@ cpd_m_punish = cpd_binary(m_punish, [0.35, 0.75, 0.30, 0.10, 0.20])
 cpd_m_undermine = cpd_binary(m_undermine, [0.70, 0.35, 0.20, 0.10, 0.15])
 ```
 
-- **Russia: 70%** (high - geopolitical adversary)
+- **Russia: 70%** (high: geopolitical adversary)
 - NewRepublic: 35%
 - FPD: 20%
 - US: 10%
@@ -222,7 +222,7 @@ def intent_probs(m_true_count):
     return [0.05, 0.25, 0.70]      # Very High (4 motives)
 ```
 
-**Logic**: More active motives → Higher intent
+**Logic**: More active motives leads to Higher intent
 
 The CPT is built by iterating over all combinations:
 
@@ -265,9 +265,9 @@ for c1 in [0,1,2]:      # Cap_ICS
 ```
 
 **Logic**: Take the maximum of two capability dimensions
-- If max capability is Low (0) → Mostly low means
-- If max capability is Medium (1) → Mostly medium means
-- If max capability is High (2) → Mostly high means
+- If max capability is Low (0): Mostly low means
+- If max capability is Medium (1): Mostly medium means
+- If max capability is High (2): Mostly high means
 
 **Why max instead of average?**
 - In practice, an attacker only needs ONE high capability domain
@@ -327,8 +327,8 @@ cpd_cyber = TabularCPD(
 ```
 
 **Reading:**
-- P(Cyber=True | Planned=False) = 0.03 (3% - rare to execute without planning)
-- P(Cyber=True | Planned=True) = 0.85 (85% - high execution rate when planned)
+- P(Cyber=True | Planned=False) = 0.03 (3%: rare to execute without planning)
+- P(Cyber=True | Planned=True) = 0.85 (85%: high execution rate when planned)
 
 **Interpretation**: If operation is NOT planned, very unlikely cyber component executes. If planned, high likelihood.
 
@@ -366,7 +366,7 @@ for cy in [0,1]:           # Cyber executed?
     for av in [0,1]:       # Vendor access available?
         for rf in [0,1,2]: # Forensic reliability
             if cy == 0:
-                base = 0.05  # No cyber op → rarely see vendor path
+                base = 0.05  # No cyber op: rarely see vendor path
             else:
                 base = 0.35 if av == 0 else 0.80
                 # Cyber executed:
@@ -419,7 +419,7 @@ for cy in [0,1]:
             p_logic_true.append(p)
 ```
 
-**Key insight**: Higher ICS capability → More sophisticated logic alteration → Higher detection probability
+**Key insight**: Higher ICS capability: More sophisticated logic alteration: Higher detection probability
 
 **Why?** More sophisticated attackers leave more detectable traces in the logic (they alter MORE things, or alter them in ways that are eventually discovered).
 

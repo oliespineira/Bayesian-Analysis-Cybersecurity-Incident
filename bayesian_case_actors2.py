@@ -3,9 +3,9 @@ from pgmpy.models import DiscreteBayesianNetwork
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 
-# =============================================================================
+# ---------------------------------------------------------------------------------
 # FREELANDIA INCIDENT - FIXED BAYESIAN NETWORK (Sponsor attribution + consequences)
-# =============================================================================
+# --------------------------------------------------------------------------------
 
 model = DiscreteBayesianNetwork()
 
@@ -15,12 +15,12 @@ model = DiscreteBayesianNetwork()
 # Hypothesis
 H = "H_sponsor"  # 0=Russia, 1=NewRepublic, 2=FPD, 3=US, 4=Other
 
-# Deception / deniability
+# Deception/deniability
 proxy = "Proxy_Used"           # 0=F, 1=T
 falseflag = "FalseFlag_Planted" # 0=F, 1=T
 
 # Capabilities (single nodes, conditioned on sponsor)
-cap_ics = "Cap_ICS"            # 0=Low, 1=Med, 2=High
+cap_ics = "Cap_Industrial_Control_Systems"            # 0=Low, 1=Med, 2=High
 cap_multi = "Cap_Multidomain"  # 0=Low, 1=Med, 2=High
 cap_io = "Cap_IO"              # 0=Low, 1=Med, 2=High
 
@@ -132,20 +132,20 @@ edges = [
 model.add_edges_from(edges)
 
 # -----------------------------------------------------------------------------
-# CPDs
+# CONDITIONAL PROBABILITY DISTRIBUTIONS
 # -----------------------------------------------------------------------------
-# Sponsor prior (tweak as you like)
+# Sponsor prior (invented so definitely not the most accurate network)
 cpd_H = TabularCPD(
     variable=H, variable_card=5,
-    values=[[0.22], [0.22], [0.18], [0.08], [0.30]]
+    values=[[0.22], [0.22], [0.18], [0.08], [0.30]] # other here has the highest probbility to reflect uncertainty
 )
 
 # Proxy / falseflag (simple sponsor-conditioned tendencies)
 cpd_proxy = TabularCPD(
     variable=proxy, variable_card=2,
     values=[
-        [0.35, 0.40, 0.50, 0.25, 0.55],  # Proxy=F
-        [0.65, 0.60, 0.50, 0.75, 0.45],  # Proxy=T
+        [0.35, 0.40, 0.50, 0.25, 0.55],  # Proxy=F/0 conditioned for each sponsor
+        [0.65, 0.60, 0.50, 0.75, 0.45],  # Proxy=T/1 (proxy=true|russia)=65%. Makes sense that Russia needs someone on the island to perform. Russia Needs them for deniability. FPD used by NR? 
     ],
     evidence=[H], evidence_card=[5]
 )
@@ -154,7 +154,7 @@ cpd_falseflag = TabularCPD(
     variable=falseflag, variable_card=2,
     values=[
         [0.70, 0.75, 0.80, 0.55, 0.85],  # FF=F
-        [0.30, 0.25, 0.20, 0.45, 0.15],  # FF=T
+        [0.30, 0.25, 0.20, 0.45, 0.15],  # FF=T US highest chances.
     ],
     evidence=[H], evidence_card=[5]
 )
@@ -164,9 +164,9 @@ cpd_falseflag = TabularCPD(
 cpd_cap_ics = TabularCPD(
     variable=cap_ics, variable_card=3,
     values=[
-        [0.10, 0.20, 0.55, 0.05, 0.45],  # Low
-        [0.35, 0.45, 0.35, 0.20, 0.40],  # Med
-        [0.55, 0.35, 0.10, 0.75, 0.15],  # High
+        [0.10, 0.20, 0.55, 0.05, 0.45],  # Low here highest FPD
+        [0.35, 0.45, 0.35, 0.20, 0.40],  # Med here highest NR
+        [0.55, 0.35, 0.10, 0.75, 0.15],  # High russia and us, more or less should be the same?
     ],
     evidence=[H], evidence_card=[5]
 )
@@ -191,7 +191,7 @@ cpd_cap_io = TabularCPD(
     evidence=[H], evidence_card=[5]
 )
 
-# Motives (binary, sponsor-conditioned)
+# Motives (binary, conditioned by sponsor)
 def cpd_binary(name, p_true_by_sponsor):
     # p_true_by_sponsor list length 5
     p_false = [1 - p for p in p_true_by_sponsor]
@@ -206,19 +206,19 @@ cpd_m_undermine = cpd_binary(m_undermine, [0.70, 0.35, 0.20, 0.10, 0.15])
 cpd_m_domestic = cpd_binary(m_domestic, [0.05, 0.10, 0.45, 0.05, 0.15])
 cpd_m_casus = cpd_binary(m_casus,     [0.10, 0.08, 0.05, 0.25, 0.05])
 
-# Access nodes (binary, sponsor-conditioned)
+# Access nodes 
 cpd_a_vendor = cpd_binary(a_vendor,  [0.55, 0.45, 0.25, 0.50, 0.35])
 cpd_a_patient = cpd_binary(a_patient,[0.60, 0.55, 0.35, 0.60, 0.40])
 cpd_a_drone = cpd_binary(a_drone,    [0.45, 0.55, 0.35, 0.35, 0.30])
 
-# Reliability priors
+# Reliability
 cpd_rel_for = TabularCPD(variable=rel_for, variable_card=3, values=[[0.30],[0.45],[0.25]])
 cpd_rel_int = TabularCPD(variable=rel_int, variable_card=3, values=[[0.35],[0.45],[0.20]])
 
 # Intent aggregator (rank-ish, from 4 motive binaries)
 # States: 0=Low,1=Med,2=High
-# CPT size: 3 x 2^4 = 48 entries -> manageable
-# Rule: more motives true -> higher intent
+# CPT size: 3 x 2^4 = 48 entries: manageable
+# Rule: more motives true:  higher intent
 def intent_probs(m_true_count):
     if m_true_count == 0:
         return [0.80, 0.18, 0.02]
@@ -249,7 +249,7 @@ cpd_intent = TabularCPD(
 )
 
 # Means aggregator from cap_ics and cap_multi (3x3 parents => 9 columns)
-# Heuristic: take the max-ish
+# Heuristic: take the max
 means_vals = [[], [], []]
 for c1 in [0,1,2]:
     for c2 in [0,1,2]:
@@ -489,9 +489,9 @@ cpd_e_fast = cpd_evidence(e_fastmsg, [planned, cap_io, rel_int], [2,3,3], p_fast
 # Make attr depend on 4 binary evidences + deception only, and keep reliabilities as soft priors
 # BUT since edges already include reliabilities -> attr, we keep a manageable CPT by:
 # - ignoring rels in CPT and letting them influence via upstream evidence.
-# We'll keep rels as parents but collapse their effect lightly with coarse mapping.
+# keep rels as parents but collapse their effect lightly with coarse mapping.
 
-# We'll build a coarse CPT over:
+# build CPT over
 # parents: e_vendor,e_logic,e_tight,e_fog,falseflag,proxy,rel_for,rel_int
 # columns: 2^4 *2*2*3*3 = 16*4*9 = 576 -> manageable programmatically.
 attr_vals = [[], [], []]
@@ -652,7 +652,7 @@ print("Model valid:", model.check_model())
 # -----------------------------------------------------------------------------
 inference = VariableElimination(model)
 
-# Evidence: same spirit as you used, but WITHOUT the unrelated FPD-URF items
+# Evidence: same spirit, but WITHOUT the unrelated FPD-URF items
 evidence = {
     e_vendor: 1,
     e_patient: 1,
