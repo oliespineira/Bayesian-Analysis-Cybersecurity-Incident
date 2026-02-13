@@ -4,7 +4,8 @@ from pgmpy.factors.discrete import TabularCPD
 from pgmpy.inference import VariableElimination
 
 # ---------------------------------------------------------------------------------
-# FREELANDIA INCIDENT - FIXED BAYESIAN NETWORK (Sponsor attribution + consequences)
+# This code constructs a Bayesian Network based on the data from the first Freelandia 
+case study as well as the first Russian Intelligence Package.
 # --------------------------------------------------------------------------------
 
 model = DiscreteBayesianNetwork()
