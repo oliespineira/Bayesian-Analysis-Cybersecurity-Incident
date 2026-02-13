@@ -5,7 +5,7 @@ from pgmpy.inference import VariableElimination
 
 # ---------------------------------------------------------------------------------
 # This code constructs a Bayesian Network based on the data from the first Freelandia 
-case study as well as the first Russian Intelligence Package.
+#case study as well as the first Russian Intelligence Package.
 # --------------------------------------------------------------------------------
 
 model = DiscreteBayesianNetwork()
